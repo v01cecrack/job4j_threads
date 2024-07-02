@@ -10,31 +10,40 @@ import java.net.URL;
 public class Wget implements Runnable {
     private final String url;
     private final int speed;
+    private final String filename;
 
-    public Wget(String url, int speed) {
+    public Wget(String url, int speed, String filename) {
         this.url = url;
         this.speed = speed;
+        this.filename = filename;
     }
 
     @Override
     public void run() {
         var startAt = System.currentTimeMillis();
-        var file = new File("tmp.xml");
+        var file = new File(filename);
         try (var input = new URL(url).openStream();
              var output = new FileOutputStream(file)) {
             System.out.println("Open connection: " + (System.currentTimeMillis() - startAt) + " ms");
-            var dataBuffer = new byte[512];
-            int bytesRead;
+            var dataBuffer = new byte[speed];
+            int bytesRead = 0;
+            var downloadStart = System.currentTimeMillis();
+            System.out.println("downloadStart = " + downloadStart);
             while ((bytesRead = input.read(dataBuffer, 0, dataBuffer.length)) != -1) {
-                var downloadAt = System.nanoTime();
                 output.write(dataBuffer, 0, bytesRead);
-                double bytesInNs = (double) 512 / (System.nanoTime() - downloadAt);
-                long bytesInMs = (long) (bytesInNs * 1000000);
-                System.out.println("Read 512 bytes : " + (System.nanoTime() - downloadAt) + " nano.");
-                System.out.println(bytesInMs + " MB");
-                System.out.println("thread sleep : " + bytesInMs / speed + " ms");
-                Thread.sleep(bytesInMs / speed);
+                if (bytesRead == speed) {
+                    var downloadEnd = System.currentTimeMillis() - downloadStart;
+                    System.out.println("bytesRead = " + bytesRead);
+                    System.out.println("downloadEnd(ms) = " + downloadEnd);
+                    if (downloadEnd < 1000) {
+                        System.out.println("Thread sleep = " + (1000 - downloadEnd) + " ms");
+                        Thread.sleep(1000 - downloadEnd);
+                        downloadStart = System.currentTimeMillis();
+                    }
+                    bytesRead = 0;
+                }
             }
+
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         } catch (FileNotFoundException e) {
@@ -45,15 +54,24 @@ public class Wget implements Runnable {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        String url = args[0];
-        if (url == null || url.isEmpty()) {
+        if (args[0] == null || args[0].isBlank()) {
             throw new IllegalArgumentException("url is empty");
         }
+        String url = args[0];
+        if (args[1] == null || args[1].isBlank()) {
+            throw new IllegalArgumentException("url is empty");
+        }
+
         int speed = Integer.parseInt(args[1]);
+
         if (speed <= 0) {
             throw new IllegalArgumentException("speed must be greater than 0");
         }
-        Thread wget = new Thread(new Wget(url, speed));
+        if (args[2].isBlank()) {
+            throw new IllegalArgumentException("filename must not be blank");
+        }
+        String filename = args[2];
+        Thread wget = new Thread(new Wget(url, speed, filename));
         wget.start();
         wget.join();
     }
