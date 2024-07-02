@@ -14,14 +14,13 @@ public class ThreadState {
         );
         first.start();
         second.start();
-        try {
-            first.join();
-            second.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        while (first.getState() != Thread.State.TERMINATED) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-        System.out.println("Работа завершена");
-
+        System.out.println("\rРабота завершена");
     }
-
 }
