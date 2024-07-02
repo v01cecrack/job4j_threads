@@ -7,7 +7,8 @@ public class ConsoleProgress implements Runnable {
         var process = new char[]{'-', '\\', '|', '/' };
         int index = 0;
         while (!Thread.currentThread().isInterrupted()) {
-            System.out.print("\r load: " + process[index++ % process.length]);
+            int i = index++ % process.length;
+            System.out.print("\r load: " + process[i]);
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
