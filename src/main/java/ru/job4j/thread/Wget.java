@@ -31,16 +31,16 @@ public class Wget implements Runnable {
             System.out.println("downloadStart = " + downloadStart);
             while ((bytesRead = input.read(dataBuffer, 0, dataBuffer.length)) != -1) {
                 output.write(dataBuffer, 0, bytesRead);
-                if (bytesRead == speed) {
+                if (bytesRead >= speed) {
                     var downloadEnd = System.currentTimeMillis() - downloadStart;
                     System.out.println("bytesRead = " + bytesRead);
                     System.out.println("downloadEnd(ms) = " + downloadEnd);
                     if (downloadEnd < 1000) {
                         System.out.println("Thread sleep = " + (1000 - downloadEnd) + " ms");
                         Thread.sleep(1000 - downloadEnd);
-                        downloadStart = System.currentTimeMillis();
                     }
                     bytesRead = 0;
+                    downloadStart = System.currentTimeMillis();
                 }
             }
 
