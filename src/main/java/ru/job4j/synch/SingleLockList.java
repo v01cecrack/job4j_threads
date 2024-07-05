@@ -6,36 +6,25 @@ import java.util.List;
 
 public class SingleLockList<T> implements Iterable<T> {
     private final List<T> list;
-    private final Object lock = new Object();
 
     public SingleLockList(List<T> list) {
-        synchronized (lock) {
-            this.list = copy(list);
-        }
+        this.list = copy(list);
     }
 
-    public void add(T value) {
-        synchronized (lock) {
-            list.add(value);
-        }
+    public synchronized void add(T value) {
+        list.add(value);
     }
 
     public T get(int index) {
-        synchronized (lock) {
-            return list.get(index);
-        }
+        return list.get(index);
     }
 
     @Override
-    public Iterator<T> iterator() {
-        synchronized (lock) {
-            return copy(list).iterator();
-        }
+    public synchronized Iterator<T> iterator() {
+        return copy(list).iterator();
     }
 
     private List<T> copy(List<T> origin) {
-        synchronized (lock) {
-            return new ArrayList<>(origin);
-        }
+        return new ArrayList<>(origin);
     }
 }
