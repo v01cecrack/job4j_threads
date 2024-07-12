@@ -26,16 +26,44 @@ public class SimpleBlockingQueue<T> {
         notifyAll();
     }
 
-    public synchronized T poll() {
+    public synchronized T poll() throws InterruptedException {
         while (queue.isEmpty()) {
-
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            wait();
         }
         notifyAll();
         return queue.poll();
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        SimpleBlockingQueue<Integer> queue = new SimpleBlockingQueue<>(3);
+        final Thread consumer = new Thread(
+                () -> {
+                    try {
+                        while (!Thread.currentThread().isInterrupted()) {
+                            System.out.println(queue.poll());
+                        }
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+        );
+        consumer.start();
+        final Thread producer = new Thread(
+                () -> {
+                    for (int index = 0; index != 3; index++) {
+                        queue.offer(index);
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+        );
+        producer.start();
+        producer.join();
+
+        consumer.interrupt();
     }
 }

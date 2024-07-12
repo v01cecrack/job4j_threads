@@ -20,7 +20,12 @@ class SimpleBlockingQueueTest {
 
         Thread consumer = new Thread(() -> {
             for (int i = 0; i < 10; i++) {
-                Integer value = simpleBlockingQueue.poll();
+                Integer value = null;
+                try {
+                    value = simpleBlockingQueue.poll();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
                 System.out.println("Consumed " + value);
             }
         });
