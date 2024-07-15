@@ -2,6 +2,10 @@ package ru.job4j;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 class SimpleBlockingQueueTest {
 
@@ -9,24 +13,21 @@ class SimpleBlockingQueueTest {
     void testSimpleBlockingQueue() throws InterruptedException {
 
         SimpleBlockingQueue<Integer> simpleBlockingQueue = new SimpleBlockingQueue<>(3);
+        final CopyOnWriteArrayList<Integer> buffer = new CopyOnWriteArrayList<>();
 
         Thread producer = new Thread(() -> {
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 5; i++) {
                 simpleBlockingQueue.offer(i);
-                System.out.println("Produced " + i);
-
             }
         });
 
         Thread consumer = new Thread(() -> {
-            for (int i = 0; i < 10; i++) {
-                Integer value = null;
+            while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    value = simpleBlockingQueue.poll();
+                    buffer.add(simpleBlockingQueue.poll());
                 } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                    Thread.currentThread().interrupt();
                 }
-                System.out.println("Consumed " + value);
             }
         });
 
@@ -34,7 +35,10 @@ class SimpleBlockingQueueTest {
         consumer.start();
 
         producer.join();
+        consumer.interrupt();
         consumer.join();
+        assertThat(buffer).containsExactly(0, 1, 2, 3, 4);
+
     }
 
 }
