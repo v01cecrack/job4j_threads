@@ -30,8 +30,9 @@ public class SimpleBlockingQueue<T> {
         while (queue.isEmpty()) {
             wait();
         }
+        T result = queue.poll();
         notifyAll();
-        return queue.poll();
+        return result;
     }
 
     public static void main(String[] args) throws InterruptedException {
