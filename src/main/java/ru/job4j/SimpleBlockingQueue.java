@@ -14,13 +14,9 @@ public class SimpleBlockingQueue<T> {
         this.limit = limit;
     }
 
-    public synchronized void offer(T value) {
+    public synchronized void offer(T value) throws InterruptedException {
         while (queue.size() >= limit) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            wait();
         }
         queue.offer(value);
         notifyAll();
@@ -52,11 +48,15 @@ public class SimpleBlockingQueue<T> {
         final Thread producer = new Thread(
                 () -> {
                     for (int index = 0; index != 3; index++) {
-                        queue.offer(index);
+                        try {
+                            queue.offer(index);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
                         try {
                             Thread.sleep(500);
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            Thread.currentThread().interrupt();
                         }
                     }
                 }
