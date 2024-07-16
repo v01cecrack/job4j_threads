@@ -17,7 +17,11 @@ class SimpleBlockingQueueTest {
 
         Thread producer = new Thread(() -> {
             for (int i = 0; i < 5; i++) {
-                simpleBlockingQueue.offer(i);
+                try {
+                    simpleBlockingQueue.offer(i);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
         });
 
