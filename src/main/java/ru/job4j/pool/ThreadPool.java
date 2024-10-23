@@ -9,7 +9,7 @@ public class ThreadPool {
     private final List<Thread> threads = new LinkedList<>();
     private final SimpleBlockingQueue<Runnable> tasks = new SimpleBlockingQueue<>(3);
 
-    int size = Runtime.getRuntime().availableProcessors();
+    private int size = Runtime.getRuntime().availableProcessors();
 
     public ThreadPool() {
         for (int i = 0; i < size; i++) {
